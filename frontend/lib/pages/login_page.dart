@@ -33,6 +33,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> submit() async {
     setState(() => loading = true);
+
     try {
       final data = await Api.request(
         'POST',
@@ -41,9 +42,12 @@ class _LoginPageState extends State<LoginPage> {
             ? {
                 'name': name.text,
                 'email': email.text,
-                'password': password.text
+                'password': password.text,
               }
-            : {'email': email.text, 'password': password.text},
+            : {
+                'email': email.text,
+                'password': password.text,
+              },
         auth: false,
       );
 
@@ -61,7 +65,11 @@ class _LoginPageState extends State<LoginPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', ''))),
+          SnackBar(
+            content: Text(
+              e.toString().replaceFirst('Exception: ', ''),
+            ),
+          ),
         );
       }
     } finally {
@@ -71,7 +79,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        backgroundColor: const Color(0xFF163F34),
+        // BookWise dashboard background
+        backgroundColor: const Color(0xFFF5F6FC),
+
         appBar: AppBar(
           leading: IconButton(
             tooltip: 'Back to BookWise',
@@ -83,11 +93,16 @@ class _LoginPageState extends State<LoginPage> {
             icon: const Icon(Icons.arrow_back),
           ),
         ),
+
         body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
+            ),
             child: Stack(
               children: [
+                // Subtle BookWise indigo decorative circle
                 Positioned(
                   top: -80,
                   right: -60,
@@ -96,87 +111,100 @@ class _LoginPageState extends State<LoginPage> {
                     height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: const Color(0xFFC8942E).withValues(alpha: 0.28),
+                      color: const Color(0xFF555BC5).withValues(alpha: 0.10),
                     ),
                   ),
                 ),
+
                 Center(
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 430),
+                    constraints: const BoxConstraints(
+                      maxWidth: 430,
+                    ),
                     child: Card(
                       color: const Color(0xFFFFFDF8),
                       child: Padding(
                         padding: const EdgeInsets.all(28),
-                        child:
-                            Column(mainAxisSize: MainAxisSize.min, children: [
-                          const CircleAvatar(
-                            radius: 34,
-                            backgroundColor: Color(0xFFDCEBE2),
-                            child: Icon(Icons.auto_stories,
-                                size: 38, color: Color(0xFF1D5A46)),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            signup ? 'Create your account' : 'Welcome back',
-                            style: const TextStyle(
-                                fontSize: 28, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            signup
-                                ? 'Start discovering books.'
-                                : 'Sign in to continue your reading journey.',
-                          ),
-                          const SizedBox(height: 24),
-                          if (signup)
-                            TextField(
-                              controller: name,
-                              decoration: const InputDecoration(
-                                labelText: 'Full name',
-                                prefixIcon: Icon(Icons.person),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const CircleAvatar(
+                              radius: 34,
+                              backgroundColor:
+                                  Color.fromARGB(255, 177, 193, 212),
+                              child: Icon(
+                                Icons.auto_stories,
+                                size: 38,
+                                color: Color.fromARGB(255, 79, 35, 184),
                               ),
                             ),
-                          if (signup) const SizedBox(height: 12),
-                          TextField(
-                            controller: email,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.email),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: password,
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: Icon(Icons.lock),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: loading ? null : submit,
-                              child: Text(
-                                loading
-                                    ? 'Please wait...'
-                                    : signup
-                                        ? 'Sign up'
-                                        : 'Sign in',
+                            const SizedBox(height: 12),
+                            Text(
+                              signup ? 'Create your account' : 'Welcome back',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                          TextButton(
-                            onPressed: () => setState(() => signup = !signup),
-                            child: Text(
+                            const SizedBox(height: 8),
+                            Text(
                               signup
-                                  ? 'Already have an account? Sign in'
-                                  : 'New here? Create an account',
+                                  ? 'Start discovering books.'
+                                  : 'Sign in to continue your reading journey.',
                             ),
-                          ),
-                        ]),
+                            const SizedBox(height: 24),
+                            if (signup)
+                              TextField(
+                                controller: name,
+                                decoration: const InputDecoration(
+                                  labelText: 'Full name',
+                                  prefixIcon: Icon(Icons.person),
+                                ),
+                              ),
+                            if (signup) const SizedBox(height: 12),
+                            TextField(
+                              controller: email,
+                              keyboardType: TextInputType.emailAddress,
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                prefixIcon: Icon(Icons.email),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: password,
+                              obscureText: true,
+                              decoration: const InputDecoration(
+                                labelText: 'Password',
+                                prefixIcon: Icon(Icons.lock),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: loading ? null : submit,
+                                child: Text(
+                                  loading
+                                      ? 'Please wait...'
+                                      : signup
+                                          ? 'Sign up'
+                                          : 'Sign in',
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                setState(() => signup = !signup);
+                              },
+                              child: Text(
+                                signup
+                                    ? 'Already have an account? Sign in'
+                                    : 'New here? Create an account',
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
