@@ -27,8 +27,10 @@ class Api {
     bool auth = true,
   }) async {
     final headers = {'Content-Type': 'application/json'};
+
     if (auth) {
       final currentToken = await token();
+
       if (currentToken != null && currentToken.isNotEmpty) {
         headers['Authorization'] = 'Bearer $currentToken';
       }
@@ -36,34 +38,45 @@ class Api {
 
     final uri = Uri.parse('${AppConfig.apiBaseUrl}$path');
     late http.Response response;
+
     switch (method) {
       case 'GET':
         response = await http.get(uri, headers: headers);
+        break;
+
       case 'POST':
         response = await http.post(
           uri,
           headers: headers,
           body: jsonEncode(body ?? {}),
         );
+        break;
+
       case 'PUT':
         response = await http.put(
           uri,
           headers: headers,
           body: jsonEncode(body ?? {}),
         );
+        break;
+
       case 'DELETE':
         response = await http.delete(uri, headers: headers);
+        break;
+
       default:
         throw ArgumentError('Unsupported HTTP method: $method');
     }
 
     final data =
         response.body.isEmpty ? <String, dynamic>{} : jsonDecode(response.body);
+
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception(
         data is Map ? (data['message'] ?? 'Request failed') : 'Request failed',
       );
     }
+
     return data;
   }
 

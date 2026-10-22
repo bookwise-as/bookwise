@@ -62,6 +62,14 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       Icons.history_rounded,
       '/history',
     ),
+
+    // NEW: My Borrowed Books navigation item.
+    _NavigationItem(
+      'My Borrowed Books',
+      Icons.bookmark_added_rounded,
+      '/my-borrowed-books',
+    ),
+
     _NavigationItem(
       'My Profile',
       Icons.person_outline_rounded,
@@ -184,7 +192,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
                 ),
               ),
 
-              // Do not display text in the menu heading while animating.
+              // Menu heading and sidebar animation.
               if (collapsed && !_sidebarAnimating)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -536,6 +544,14 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         Icons.history_rounded,
         '/history',
       ),
+
+      // NEW: My Borrowed Books on mobile.
+      _NavigationItem(
+        'Borrowed',
+        Icons.bookmark_added_rounded,
+        '/my-borrowed-books',
+      ),
+
       _NavigationItem(
         'Profile',
         Icons.person_rounded,

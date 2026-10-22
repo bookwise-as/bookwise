@@ -1,19 +1,94 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
-import 'pages/admin_dashboard_page.dart';
-import 'pages/book_form_page.dart';
-import 'pages/catalog_page.dart';
-import 'pages/dashboard_page.dart';
-import 'pages/history_page.dart';
-import 'pages/home_page.dart';
-import 'pages/login_page.dart';
-import 'pages/profile_page.dart';
-import 'pages/recommendations_page.dart';
-import 'pages/welcome_page.dart';
-import 'widgets/app_navigation_shell.dart';
+import 'package:book_recommendation_app/pages/admin_dashboard_page.dart';
+import 'package:book_recommendation_app/pages/book_form_page.dart';
+import 'package:book_recommendation_app/pages/catalog_page.dart';
+import 'package:book_recommendation_app/pages/dashboard_page.dart';
+import 'package:book_recommendation_app/pages/history_page.dart';
+import 'package:book_recommendation_app/pages/home_page.dart';
+import 'package:book_recommendation_app/pages/login_page.dart';
+import 'package:book_recommendation_app/pages/my_borrowed_books_page.dart';
+import 'package:book_recommendation_app/pages/profile_page.dart';
+import 'package:book_recommendation_app/pages/recommendations_page.dart';
+import 'package:book_recommendation_app/pages/welcome_page.dart';
+import 'package:book_recommendation_app/services/api.dart';
+import 'package:book_recommendation_app/widgets/app_navigation_shell.dart';
 
 void main() => runApp(const BookApp());
+
+// Load the authenticated user's borrowed books.
+Future<List<Map<String, dynamic>>> _loadBorrowedBooks() async {
+  final response = await Api.request(
+    'GET',
+    '/history',
+  ).timeout(const Duration(seconds: 15));
+
+  if (response is! Map || response['history'] is! List) {
+    throw const FormatException(
+      'Invalid borrowing history response.',
+    );
+  }
+
+  final history = response['history'] as List;
+
+  final Map<int, Map<String, dynamic>> booksById = {};
+  final Map<int, int> borrowedCounts = {};
+  final Map<int, int> returnedCounts = {};
+
+  for (final item in history) {
+    if (item is! Map) continue;
+
+    final bookId = int.tryParse(
+      '${item['book_id'] ?? ''}',
+    );
+
+    if (bookId == null) continue;
+
+    final action = '${item['action'] ?? ''}'.toLowerCase();
+
+    booksById.putIfAbsent(
+      bookId,
+      () => {
+        // The return API requires the book ID.
+        // This key matches what your existing page expects.
+        'borrowing_id': bookId,
+        'book_id': bookId,
+        'title': item['title'] ?? 'Untitled book',
+        'author': item['author'] ?? 'Unknown author',
+        'status': 'borrowed',
+        'due_date': null,
+      },
+    );
+
+    if (action == 'borrowed') {
+      borrowedCounts[bookId] = (borrowedCounts[bookId] ?? 0) + 1;
+    } else if (action == 'returned') {
+      returnedCounts[bookId] = (returnedCounts[bookId] ?? 0) + 1;
+    }
+  }
+
+  final borrowedBooks = <Map<String, dynamic>>[];
+
+  for (final entry in booksById.entries) {
+    final bookId = entry.key;
+
+    final activeCount =
+        (borrowedCounts[bookId] ?? 0) - (returnedCounts[bookId] ?? 0);
+
+    if (activeCount > 0) {
+      entry.value['borrowed_count'] = activeCount;
+      borrowedBooks.add(entry.value);
+    }
+  }
+
+  return borrowedBooks;
+}
+
+// Connect the page's return callback to the existing API method.
+Future<void> _returnBorrowedBook(int borrowingId) async {
+  await Api.returnBook(borrowingId);
+}
 
 class BookApp extends StatelessWidget {
   const BookApp({super.key});
@@ -176,34 +251,34 @@ class BookApp extends StatelessWidget {
           ),
         ),
 
-        // Keep the existing public landing page as the first page.
-        initialRoute: '/welcome',
+        // Keep the Welcome page as the starting page.
+        home: const WelcomePage(),
 
         routes: {
-          // Public pages — unchanged.
+          // Public pages.
           '/welcome': (_) => const WelcomePage(),
           '/login': (_) => const LoginPage(),
           '/signup': (_) => const LoginPage(startWithSignup: true),
 
-          // HOME PAGE: book discovery and recommendations.
+          // Home page.
           '/home': (_) => const AppNavigationShell(
                 currentRoute: '/home',
                 child: HomePage(),
               ),
 
-          // DASHBOARD PAGE: reading statistics and activities.
+          // Dashboard page.
           '/dashboard': (_) => const AppNavigationShell(
                 currentRoute: '/dashboard',
                 child: DashboardPage(),
               ),
 
-          // Explore the book catalog.
+          // Book catalog.
           '/catalog': (_) => const AppNavigationShell(
                 currentRoute: '/catalog',
                 child: CatalogPage(),
               ),
 
-          // Personalized recommendations.
+          // Recommendations.
           '/recommendations': (_) => const AppNavigationShell(
                 currentRoute: '/recommendations',
                 child: RecommendationsPage(),
@@ -215,6 +290,15 @@ class BookApp extends StatelessWidget {
                 child: HistoryPage(),
               ),
 
+          // My Borrowed Books.
+          // My Borrowed Books.
+          '/my-borrowed-books': (_) => const AppNavigationShell(
+                currentRoute: '/my-borrowed-books',
+                child: MyBorrowedBooksPage(
+                  loadBooks: _loadBorrowedBooks,
+                  returnBook: _returnBorrowedBook,
+                ),
+              ),
           // User profile.
           '/profile': (_) => const AppNavigationShell(
                 currentRoute: '/profile',
